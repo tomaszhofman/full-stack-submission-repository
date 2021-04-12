@@ -21,7 +21,8 @@ const App = () => {
   const [mostVoted, setMostVoted] = useState([]);
 
   const handleNextButton = () => {
-    setSelected(selected + 1);
+    const random = Math.floor(Math.random() * votes.length);
+    setSelected(random);
   };
 
   const handleVoteButton = () => {
