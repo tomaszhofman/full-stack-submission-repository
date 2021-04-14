@@ -5,6 +5,7 @@ import Persons from './components/Persons';
 import axios from 'axios';
 
 import servicePerson from './services/persons';
+import Notification from './components/Notification';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -12,6 +13,12 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');
   const [newSearch, setNewSearch] = useState('');
   const [filter, setFilter] = useState(false);
+  const [sucessMessage, setSucessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const headerStyle = {
+    color: 'red',
+  };
 
   useEffect(() => {
     servicePerson.getAll().then((initialNotes) => {
@@ -38,7 +45,13 @@ const App = () => {
     if (window.confirm(`Delete ${personName}?`)) {
       servicePerson
         .deletePerson(id)
-        .then((returnedNote) => console.log(returnedNote));
+        .then((returnedNote) => console.log(returnedNote))
+        .catch((error) => {
+          setErrorMessage(`This note was already removed from server`);
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 4000);
+        });
       setPersons(persons.filter((person) => person.id !== id));
     }
     return;
@@ -73,11 +86,21 @@ const App = () => {
                 person.id !== id ? person : returnedNote
               )
             )
-          );
+          )
+          .catch((error) => {
+            setErrorMessage(`Information has been removed from server`);
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 5000);
+          });
       }
     } else {
       servicePerson.create(newPersonObject).then((returnedNote) => {
         setPersons(persons.concat(returnedNote));
+        setSucessMessage(`Added ${newName}`);
+        setTimeout(() => {
+          setSucessMessage(null);
+        }, 4000);
         setNewName('');
         setNewNumber('');
       });
@@ -86,7 +109,9 @@ const App = () => {
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h2 style={headerStyle}>Phonebook</h2>
+      <Notification message={sucessMessage ? sucessMessage : errorMessage} />
+
       <Filter
         handleSearch={handleSearch}
         newSearch={newSearch}
