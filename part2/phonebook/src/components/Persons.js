@@ -5,7 +5,11 @@ const Persons = (props) => {
   return (
     <ul>
       {props.contactsToShow.map((person) => (
-        <Person key={person.name} {...person} />
+        <Person
+          onClick={() => props.handleDeletePerson(person.id)}
+          key={person.name}
+          {...person}
+        />
       ))}
     </ul>
   );
