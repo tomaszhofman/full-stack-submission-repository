@@ -95,15 +95,23 @@ const App = () => {
           });
       }
     } else {
-      servicePerson.create(newPersonObject).then((returnedNote) => {
-        setPersons(persons.concat(returnedNote));
-        setSucessMessage(`Added ${newName}`);
-        setTimeout(() => {
-          setSucessMessage(null);
-        }, 4000);
-        setNewName('');
-        setNewNumber('');
-      });
+      servicePerson
+        .create(newPersonObject)
+        .then((returnedNote) => {
+          setPersons(persons.concat(returnedNote));
+          setSucessMessage(`Added ${newName}`);
+          setTimeout(() => {
+            setSucessMessage(null);
+          }, 4000);
+          setNewName('');
+          setNewNumber('');
+        })
+        .catch((error) => {
+          setErrorMessage(`${error.response.data.error}`);
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 4000);
+        });
     }
   };
 
