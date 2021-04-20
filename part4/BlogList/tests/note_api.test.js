@@ -12,7 +12,7 @@ const initialBlogs = [
     likes: 7,
   },
   {
-    title: 'Browser can execute only Javascript',
+    title: 'Love dogs',
     author: 'Author',
     url: 'gggggg',
     likes: 7,
@@ -54,16 +54,18 @@ describe('test backend', () => {
 
   it('check if the like property is missing', async () => {
     const newBlog = {
-      title: 'tEST',
+      title: 'Smolensk historia',
       author: 'Author',
       url: 'gggggg',
     };
 
     await api.post('/api/blogs').send(newBlog).expect(200);
 
-    const response = await api.get('/api/blogs');
-    const blog = response.body[2];
-    expect(blog.likes).toBe(0);
+    const blog = await Blog.find({ title: 'Smolensk historia' });
+    // const response = await api.get('/api/blogs');
+    // const blog = response.body[2];
+
+    expect(blog[0].likes).toBe(0);
   });
 
   it('verifies that title and url are missing grom request ', async () => {
@@ -72,6 +74,37 @@ describe('test backend', () => {
     };
 
     await api.post('/api/blogs').send(newBlog).expect(404);
+  });
+
+  describe('deletion of a note', () => {
+    it('succeeds with status 204 if id is correct', async () => {
+      const notesAtStart = await api.get('/api/blogs');
+      const noteToDelete = notesAtStart.body[0];
+
+      await api.delete(`/api/blogs/${noteToDelete.id}`).expect(204);
+      const notesAtEnd = await api.get('/api/blogs');
+
+      expect(notesAtEnd.body).toHaveLength(initialBlogs.length - 1);
+      const content = notesAtEnd.body.map((r) => r.title);
+      expect(content).not.toContain(noteToDelete.title);
+      console.log(content);
+    });
+  });
+});
+
+describe('updating note', () => {
+  test('updeting likes with status ok', async () => {
+    const blogs = await api.get('/api/blogs');
+    const blogToUpdate = blogs.body[0];
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send({ likes: 20 })
+      .expect(200);
+
+    const result = await api.get(`/api/blogs/${blogToUpdate.id}`);
+
+    expect(result.body.likes).toBe(20);
   });
 });
 
