@@ -3,6 +3,9 @@ const supertest = require('supertest');
 const app = require('../app');
 const api = supertest(app);
 const Blog = require('../models/Blog');
+const User = require('../models/User');
+const helper = require('./helper');
+const bcrypt = require('bcrypt');
 
 const initialBlogs = [
   {
@@ -25,6 +28,21 @@ beforeEach(async () => {
   const blogObject = initialBlogs.map((blog) => new Blog(blog));
   const blogArray = blogObject.map((blog) => blog.save());
   await Promise.all(blogArray);
+
+  const res = await api.post('/api/users').send({
+    username: 'Adamx',
+    name: 'Adam kasztelna',
+    password: 'test',
+  });
+
+  const response = await api.post('api/login').send({
+    username: 'Adamx',
+    password: 'test',
+  });
+  console.log(response);
+
+  // const token = response.body.token;
+  // console.log(response);
 });
 
 describe('test backend', () => {
@@ -105,6 +123,69 @@ describe('updating note', () => {
     const result = await api.get(`/api/blogs/${blogToUpdate.id}`);
 
     expect(result.body.likes).toBe(20);
+  });
+});
+
+describe('creating a user in database', () => {
+  beforeEach(async () => {
+    await User.deleteMany({});
+
+    const passwordHash = await bcrypt.hash('sekret', 10);
+    const newUser = new User({ username: 'test', passwordHash });
+    await newUser.save();
+  });
+  it('correctly adds a new user', async () => {
+    const usersAtBegining = await helper.getAllUsers();
+    console.log('test', usersAtBegining);
+
+    const newUser = {
+      username: 'Savilic',
+      name: 'Savilic Mutulda',
+      password: 'savilden',
+    };
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+
+    const usersAtEnd = await helper.getAllUsers();
+    expect(usersAtEnd).toHaveLength(usersAtBegining.length + 1);
+    const usernames = usersAtEnd.map((u) => u.username);
+    expect(usernames).toContain(newUser.username);
+  });
+
+  it('checks if user is unique ', async () => {
+    const usersAtBeginning = await helper.getAllUsers();
+
+    const newUser = {
+      username: 'test',
+      name: 'Test adams',
+      password: 'Test',
+    };
+
+    const result = await api.post('/api/users').send(newUser).expect(400);
+
+    expect(result.body.error).toContain('`username` to be unique');
+    const usersAtEnd = await helper.getAllUsers();
+    expect(usersAtEnd).toHaveLength(usersAtBeginning.length);
+  });
+
+  it('checks if username contains min 3 letters', async () => {
+    const usersAtBeginning = await helper.getAllUsers();
+
+    const newUser = {
+      username: 'te',
+      name: 'Test adams',
+      password: 'Test',
+    };
+
+    const result = await api.post('/api/users').send(newUser).expect(400);
+
+    expect(result.body.error).toContain('is shorter than the minimum allowed');
+    const usersAtEnd = await helper.getAllUsers();
+    expect(usersAtEnd).toHaveLength(usersAtBeginning.length);
   });
 });
 
