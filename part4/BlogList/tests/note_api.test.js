@@ -22,27 +22,25 @@ const initialBlogs = [
   },
 ];
 
+let token = null;
 beforeEach(async () => {
   await Blog.deleteMany({});
+  await User.deleteMany({});
 
   const blogObject = initialBlogs.map((blog) => new Blog(blog));
   const blogArray = blogObject.map((blog) => blog.save());
   await Promise.all(blogArray);
 
-  const res = await api.post('/api/users').send({
-    username: 'Adamx',
-    name: 'Adam kasztelna',
-    password: 'test',
-  });
+  const passwordHash = await bcrypt.hash('sekret', 10);
+  const newUser = new User({ username: 'test', passwordHash });
+  await newUser.save();
 
-  const response = await api.post('api/login').send({
-    username: 'Adamx',
-    password: 'test',
-  });
-  console.log(response);
+  const loginUser = await api
+    .post('/api/login')
+    .send({ username: 'test', password: 'sekret' });
 
-  // const token = response.body.token;
-  // console.log(response);
+  token = loginUser.body.token;
+  return token;
 });
 
 describe('test backend', () => {
@@ -62,6 +60,7 @@ describe('test backend', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
+      .set({ Authorization: `bearer ${token}` })
       .expect(200)
       .expect('Content-Type', /application\/json/);
 
@@ -77,7 +76,11 @@ describe('test backend', () => {
       url: 'gggggg',
     };
 
-    await api.post('/api/blogs').send(newBlog).expect(200);
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set({ Authorization: `bearer ${token}` })
+      .expect(200);
 
     const blog = await Blog.find({ title: 'Smolensk historia' });
     // const response = await api.get('/api/blogs');
@@ -95,17 +98,51 @@ describe('test backend', () => {
   });
 
   describe('deletion of a note', () => {
+    beforeEach(async () => {
+      await Blog.deleteMany({});
+      await User.deleteMany({});
+
+      const passwordHash = await bcrypt.hash('secret', 10);
+      const user = new User({ username: 'TEST', passwordHash });
+      await user.save();
+
+      const userLogin = await api
+        .post('/api/login')
+        .send({ username: 'TEST', password: 'secret' });
+      token = userLogin.body.token;
+
+      const newBlog = {
+        title: 'Another blog',
+        author: 'Jane Doe',
+        url: 'http://dummyurl.com',
+      };
+
+      await api
+        .post('/api/blogs')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newBlog)
+        .expect(200)
+        .expect('Content-Type', /application\/json/);
+
+      return token;
+    });
     it('succeeds with status 204 if id is correct', async () => {
-      const notesAtStart = await api.get('/api/blogs');
-      const noteToDelete = notesAtStart.body[0];
+      const blogsAtStart = await Blog.find({}).populate('user');
 
-      await api.delete(`/api/blogs/${noteToDelete.id}`).expect(204);
-      const notesAtEnd = await api.get('/api/blogs');
+      const blogToDelete = blogsAtStart[0];
 
-      expect(notesAtEnd.body).toHaveLength(initialBlogs.length - 1);
-      const content = notesAtEnd.body.map((r) => r.title);
-      expect(content).not.toContain(noteToDelete.title);
-      console.log(content);
+      await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(204);
+
+      const blogsAtEnd = await Blog.find({}).populate('user');
+
+      expect(blogsAtStart).toHaveLength(1);
+      expect(blogsAtEnd).toHaveLength(0);
+      console.log(blogsAtEnd);
+      const content = blogsAtEnd.map((u) => u.title);
+      expect(content).not.toContain('Another blog');
     });
   });
 });
@@ -133,6 +170,13 @@ describe('creating a user in database', () => {
     const passwordHash = await bcrypt.hash('sekret', 10);
     const newUser = new User({ username: 'test', passwordHash });
     await newUser.save();
+
+    const loginUser = await api
+      .post('/api/login')
+      .send({ username: 'test', password: 'sekret' });
+
+    token = loginUser.body.token;
+    return token;
   });
   it('correctly adds a new user', async () => {
     const usersAtBegining = await helper.getAllUsers();
@@ -147,11 +191,13 @@ describe('creating a user in database', () => {
     await api
       .post('/api/users')
       .send(newUser)
+
       .expect(200)
       .expect('Content-Type', /application\/json/);
 
     const usersAtEnd = await helper.getAllUsers();
     expect(usersAtEnd).toHaveLength(usersAtBegining.length + 1);
+    console.log(usersAtEnd);
     const usernames = usersAtEnd.map((u) => u.username);
     expect(usernames).toContain(newUser.username);
   });
