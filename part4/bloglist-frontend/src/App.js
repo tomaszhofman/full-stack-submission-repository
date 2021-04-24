@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Blog from './components/Blog';
+import NewPostForm from './components/NewPostForm';
+
 import Notification from './components/Notification';
+import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
 const initialState = {
@@ -8,17 +11,11 @@ const initialState = {
   password: '',
 };
 
-const initialStateBlog = {
-  title: '',
-  author: '',
-  url: '',
-};
-
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [user, SetUser] = useState(null);
   const [login, setLogin] = useState(initialState);
-  const [post, setNewPost] = useState(initialStateBlog);
+
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -68,22 +65,7 @@ const App = () => {
     }
   };
 
-  const handleNewPostInput = (e) => {
-    setNewPost({
-      ...post,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleNewPostForm = async (e) => {
-    e.preventDefault();
-
-    const newUser = {
-      title: post.title,
-      author: post.author,
-      url: post.title,
-    };
-
+  const addPost = async (newUser) => {
     const result = await blogService.create(newUser);
     setError(`a new blog ${newUser.title} by ${newUser.author} added`);
 
@@ -91,40 +73,7 @@ const App = () => {
       setError(null);
     }, 5000);
     setBlogs(blogs.concat(result));
-    setNewPost(initialStateBlog);
   };
-  const newPostForm = () => (
-    <>
-      <h2>create new</h2>
-      <form onSubmit={handleNewPostForm}>
-        <label htmlFor="title ">title</label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-          value={post.title}
-          onChange={handleNewPostInput}
-        />
-        <label htmlFor="author">author</label>
-        <input
-          type="text"
-          name="author"
-          id="author"
-          value={post.author}
-          onChange={handleNewPostInput}
-        />
-        <label htmlFor="url">url</label>
-        <input
-          type="text"
-          name="url"
-          id="url"
-          value={post.url}
-          onChange={handleNewPostInput}
-        />
-        <button type="submit">create</button>
-      </form>
-    </>
-  );
 
   const loginForm = () => (
     <>
@@ -151,6 +100,12 @@ const App = () => {
     </>
   );
 
+  const newPostForm = () => (
+    <Togglable buttonLabel="create new blog">
+      <NewPostForm addPost={addPost} />
+    </Togglable>
+  );
+
   return (
     <div>
       <Notification error={error} />
@@ -160,9 +115,16 @@ const App = () => {
           <p>{`${user.name} logged in`}</p>
           <button onClick={handleLogout}> logout</button>
           {newPostForm()}
-          {blogs.map((blog) => (
-            <Blog key={blog.id} blog={blog} />
-          ))}
+          {blogs
+            .sort((a, b) => b.likes - a.likes)
+            .map((blog) => (
+              <Blog
+                key={blog.id}
+                blog={blog}
+                setBlogs={setBlogs}
+                blogs={blogs}
+              />
+            ))}
         </div>
       ) : (
         loginForm()
