@@ -19,6 +19,16 @@ const Blog = ({ blog, setBlogs, blogs }) => {
     console.log(response);
     setBlogs(blogs.map((blog) => (blog.id !== newBlog.id ? blog : response)));
   };
+
+  const handleDelete = async () => {
+    const blogId = blog.id;
+    if (window.confirm('Do you really want to leave?')) {
+      const response = await blogService.deleteItem(blogId);
+      console.log(response);
+
+      setBlogs(blogs.filter((blog) => blog.id !== blogId));
+    }
+  };
   return (
     <div style={blogStyle}>
       {console.log(blog)}
@@ -29,6 +39,9 @@ const Blog = ({ blog, setBlogs, blogs }) => {
         {blog.likes} <button onClick={updatelikes}>vote</button>
         <br />
         {blog.author}
+        <button id="remove" onClick={handleDelete}>
+          remove
+        </button>
       </Togglable>
     </div>
   );

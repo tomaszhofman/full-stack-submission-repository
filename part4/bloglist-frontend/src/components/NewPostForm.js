@@ -55,7 +55,9 @@ const NewPostForm = ({ addPost }) => {
           value={post.url}
           onChange={handleNewPostInput}
         />
-        <button type="submit">create</button>
+        <button id="create" type="submit">
+          create
+        </button>
       </form>
     </>
   );
