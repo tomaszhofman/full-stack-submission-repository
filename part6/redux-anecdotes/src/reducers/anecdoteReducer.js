@@ -1,3 +1,5 @@
+import AnecdoteService from '../services/anecdotes';
+
 const anecdotesAtStart = [
   'If it hurts, do it more often',
   'Adding manpower to a late software project makes it later!',
@@ -17,17 +19,18 @@ const asObject = (anecdote) => {
   };
 };
 
-const initialState = anecdotesAtStart.map(asObject);
+export const initialState = anecdotesAtStart.map(asObject);
 
-const reducer = (state = initialState, action) => {
+const reducer = (state = [], action) => {
   switch (action.type) {
     case 'INCREMENT_VOTE': {
       const id = action.data.id;
-      const anecdoteToFind = state.find((el) => el.id === id);
-      const newAnecdote = {
-        ...anecdoteToFind,
-        votes: anecdoteToFind.votes + 1,
-      };
+      const newAnecdote = action.data.updatedVotes;
+      // const anecdoteToFind = state.find((el) => el.id === id);
+      // const newAnecdote = {
+      //   ...anecdoteToFind,
+      //   votes: anecdoteToFind.votes + 1,
+      // };
 
       return state.map((el) => (el.id !== id ? el : newAnecdote));
     }
@@ -35,28 +38,41 @@ const reducer = (state = initialState, action) => {
     case 'ADD_NOTE':
       return [...state, action.data];
 
+    case 'INIT':
+      return action.data;
+
     default:
       return state;
   }
 };
 
-export const vote = (id) => {
-  return {
-    type: 'INCREMENT_VOTE',
-    data: {
-      id: id,
-    },
+export const initAnecdote = () => {
+  return async (dispatch) => {
+    const anecdotes = await AnecdoteService.getAll();
+    dispatch({
+      type: 'INIT',
+      data: anecdotes,
+    });
   };
 };
 
-export const createNote = (content) => {
-  return {
-    type: 'ADD_NOTE',
-    data: {
-      content,
-      id: getId(),
-      votes: 0,
-    },
+export const vote = (id) => {
+  return async (dispatch) => {
+    const updatedVotes = await AnecdoteService.incrementLikes(id);
+    dispatch({
+      type: 'INCREMENT_VOTE',
+      data: { updatedVotes, id },
+    });
+  };
+};
+
+export const createNote = (data) => {
+  return async (dispatch) => {
+    const newAnecdote = await AnecdoteService.createNew(data);
+    dispatch({
+      type: 'ADD_NOTE',
+      data: newAnecdote,
+    });
   };
 };
 
