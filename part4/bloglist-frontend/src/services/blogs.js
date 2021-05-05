@@ -34,4 +34,20 @@ const deleteItem = async (id) => {
   const response = await axios.delete(`${baseUrl}/${id}`, config);
   return response.data;
 };
-export default { getAll, create, getToken, update, deleteItem };
+
+const getOne = async (id) => {
+  const response = await axios.get(`${baseUrl}/${id}`);
+  return response.data;
+};
+
+const incrementLikes = async (id) => {
+  const blog = await getOne(id);
+  const likes = blog.likes + 1;
+  const newBlog = { ...blog, likes };
+
+  const response = await update(id, newBlog);
+  console.log(response);
+  return response;
+};
+
+export default { getAll, create, getToken, update, deleteItem, incrementLikes };

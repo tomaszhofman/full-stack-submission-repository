@@ -6,20 +6,32 @@ import Notification from './components/Notification';
 import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
+
+import { Switch, Route, Link } from 'react-router-dom';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { addNewBlog, inicializeBlog } from './reducers/blogRecuder';
+import { setNotification } from './reducers/notificationReducer';
+import Users from './components/Users';
 const initialState = {
   username: '',
   password: '',
 };
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
+  // const [blogs, setBlogs] = useState([]);
   const [user, SetUser] = useState(null);
   const [login, setLogin] = useState(initialState);
 
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const blogs = useSelector((state) => state.blogs);
+  const notifiaction = useSelector((state) => state.notifications);
+  console.log(notifiaction);
 
   useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs));
+    // blogService.getAll().then((blogs) => setBlogs(blogs));
+    dispatch(inicializeBlog());
+    console.log('test');
   }, []);
 
   useEffect(() => {
@@ -58,21 +70,25 @@ const App = () => {
       setLogin(initialState);
       console.log(user);
     } catch (errorMessage) {
-      setError('wrong username or password');
-      setTimeout(() => {
-        setError(null);
-      }, 5000);
+      // setError('wrong username or password');
+      // setTimeout(() => {
+      //   setError(null);
+      // }, 5000);
+
+      dispatch(setNotification('wrong username or password'));
     }
   };
 
   const addPost = async (newUser) => {
-    const result = await blogService.create(newUser);
-    setError(`a new blog ${newUser.title} by ${newUser.author} added`);
+    dispatch(addNewBlog(newUser));
+    dispatch(
+      setNotification(`a new blog ${newUser.title} by ${newUser.author} added`)
+    );
 
-    setTimeout(() => {
-      setError(null);
-    }, 5000);
-    setBlogs(blogs.concat(result));
+    // setTimeout(() => {
+    //   setError(null);
+    // }, 5000);
+    // setBlogs(blogs.concat(result));
   };
 
   const loginForm = () => (
@@ -106,29 +122,37 @@ const App = () => {
     </Togglable>
   );
 
+  if (!user) {
+    return loginForm();
+  }
+
   return (
     <div>
-      <Notification error={error} />
-      {user ? (
-        <div>
-          <h2>blogs</h2>
-          <p>{`${user.name} logged in`}</p>
-          <button onClick={handleLogout}> logout</button>
-          {newPostForm()}
-          {blogs
-            .sort((a, b) => b.likes - a.likes)
-            .map((blog) => (
-              <Blog
-                key={blog.id}
-                blog={blog}
-                setBlogs={setBlogs}
-                blogs={blogs}
-              />
-            ))}
-        </div>
-      ) : (
-        loginForm()
-      )}
+      <Notification notification={notifiaction} />
+
+      <div>
+        <h2>blogs</h2>
+        <p>{`${user.name} logged in`}</p>
+        <button onClick={handleLogout}> logout</button>
+        <Switch>
+          <Route path="/users">
+            <Users />
+          </Route>
+          <Route path="/">
+            {newPostForm()}
+            {blogs
+              .sort((a, b) => b.likes - a.likes)
+              .map((blog) => (
+                <Blog
+                  key={blog.id}
+                  blog={blog}
+                  // setBlogs={setBlogs}
+                  blogs={blogs}
+                />
+              ))}
+          </Route>
+        </Switch>
+      </div>
     </div>
   );
 };
