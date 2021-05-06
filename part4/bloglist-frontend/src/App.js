@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addNewBlog, inicializeBlog } from './reducers/blogRecuder';
 import { setNotification } from './reducers/notificationReducer';
 import Users from './components/Users';
+import UserDetails from './components/UserDetails';
 const initialState = {
   username: '',
   password: '',
@@ -135,6 +136,9 @@ const App = () => {
         <p>{`${user.name} logged in`}</p>
         <button onClick={handleLogout}> logout</button>
         <Switch>
+          <Route path="/users/:id">
+            <UserDetails />
+          </Route>
           <Route path="/users">
             <Users />
           </Route>
