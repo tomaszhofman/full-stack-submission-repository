@@ -27,6 +27,13 @@ const update = async (id, updatedContent) => {
   return response.data;
 };
 
+const updateComments = async (id, updatedContet) => {
+  const response = await axios.put(`${baseUrl}/${id}`, {
+    comments: updatedContet,
+  });
+  return response.data;
+};
+
 const deleteItem = async (id) => {
   const config = {
     headers: { Authorization: token },
@@ -50,4 +57,13 @@ const incrementLikes = async (id) => {
   return response;
 };
 
-export default { getAll, create, getToken, update, deleteItem, incrementLikes };
+export default {
+  getAll,
+  create,
+  getToken,
+  update,
+  deleteItem,
+  incrementLikes,
+  getOne,
+  updateComments,
+};

@@ -6,14 +6,16 @@ import Notification from './components/Notification';
 import Togglable from './components/Togglable';
 import blogService from './services/blogs';
 import loginService from './services/login';
+import Nav from '../src/components/Themes/Nav';
 
-import { Switch, Route, Link } from 'react-router-dom';
+import { Switch, Route, Link, useHistory } from 'react-router-dom';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { addNewBlog, inicializeBlog } from './reducers/blogRecuder';
 import { setNotification } from './reducers/notificationReducer';
 import Users from './components/Users';
 import UserDetails from './components/UserDetails';
+import BlogDeatails from './components/BlogDeatails';
 const initialState = {
   username: '',
   password: '',
@@ -25,8 +27,9 @@ const App = () => {
   const [login, setLogin] = useState(initialState);
 
   const dispatch = useDispatch();
-  const blogs = useSelector((state) => state.blogs);
+  const blogs = useSelector((state) => state.blogs.blogs);
   const notifiaction = useSelector((state) => state.notifications);
+  const hsitory = useHistory();
   console.log(notifiaction);
 
   useEffect(() => {
@@ -123,40 +126,51 @@ const App = () => {
     </Togglable>
   );
 
+  const showBlogDetails = (id) => {
+    hsitory.push(`/blogs/${id}`);
+  };
+
   if (!user) {
     return loginForm();
   }
 
   return (
     <div>
-      <Notification notification={notifiaction} />
+      <Nav>
+        <Notification notification={notifiaction} />
 
-      <div>
-        <h2>blogs</h2>
-        <p>{`${user.name} logged in`}</p>
-        <button onClick={handleLogout}> logout</button>
-        <Switch>
-          <Route path="/users/:id">
-            <UserDetails />
-          </Route>
-          <Route path="/users">
-            <Users />
-          </Route>
-          <Route path="/">
-            {newPostForm()}
-            {blogs
-              .sort((a, b) => b.likes - a.likes)
-              .map((blog) => (
-                <Blog
-                  key={blog.id}
-                  blog={blog}
-                  // setBlogs={setBlogs}
-                  blogs={blogs}
-                />
-              ))}
-          </Route>
-        </Switch>
-      </div>
+        <div>
+          <h2>blogs</h2>
+          <p>{`${user.name} logged in`}</p>
+          <button onClick={handleLogout}> logout</button>
+          <Switch>
+            <Route path="/blogs/:id">
+              <BlogDeatails />
+            </Route>
+            <Route path="/users/:id">
+              <UserDetails />
+            </Route>
+            <Route path="/users">
+              <Users />
+            </Route>
+            <Route path="/">
+              {newPostForm()}
+
+              {blogs
+                .sort((a, b) => b.likes - a.likes)
+                .map((blog) => (
+                  <Blog
+                    key={blog.id}
+                    blog={blog}
+                    // setBlogs={setBlogs}
+                    blogs={blogs}
+                    onClick={() => showBlogDetails(blog.id)}
+                  />
+                ))}
+            </Route>
+          </Switch>
+        </div>
+      </Nav>
     </div>
   );
 };

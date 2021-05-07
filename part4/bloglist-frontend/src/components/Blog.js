@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import Togglable from './Togglable';
 import blogService from '../services/blogs';
 import { deleteBlog, updateLikes } from '../reducers/blogRecuder';
-const Blog = ({ blog, setBlogs, blogs }) => {
+const Blog = ({ blog, setBlogs, blogs, onClick }) => {
   const dispatch = useDispatch();
   const blogStyle = {
     paddingTop: 10,
@@ -35,7 +35,7 @@ const Blog = ({ blog, setBlogs, blogs }) => {
     }
   };
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} onClick={onClick}>
       {console.log(blog)}
       {blog.title}
       <Togglable buttonLabel="view">

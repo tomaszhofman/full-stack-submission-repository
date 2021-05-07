@@ -1,20 +1,43 @@
 import blogService from '../services/blogs';
 
-const blogReducer = (state = [], action) => {
+const initialState = {
+  blogs: [],
+  selectedBlog: [],
+};
+
+const blogReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'BLOG INIT':
-      return action.data;
+      return {
+        ...state,
+        blogs: action.data,
+      };
 
     case 'NEW BLOG':
-      return [...state, action.data];
+      return {
+        ...state,
+        blogs: [...state, action.data],
+      };
 
     case 'UPDATE LIKES':
-      return state.map((el) =>
-        el.id === action.data.id ? action.data.response : el
-      );
+      return {
+        ...state,
+        blogs: state.map((el) =>
+          el.id === action.data.id ? action.data.response : el
+        ),
+      };
 
     case 'DELETE BLOG':
-      return state.filter((el) => el.id !== action.data.id);
+      return {
+        ...state,
+        blogs: state.filter((el) => el.id !== action.data.id),
+      };
+
+    case 'FIND BLOG':
+      return {
+        ...state,
+        selectedBlog: action.data.response,
+      };
 
     default:
       return state;
@@ -63,6 +86,17 @@ export const deleteBlog = (id) => {
     dispatch({
       type: 'DELETE BLOG',
       data: { response, id },
+    });
+  };
+};
+
+export const findBlogDetails = (id) => {
+  return async (dispatch) => {
+    const response = await blogService.getOne(id);
+
+    dispatch({
+      type: 'FIND BLOG',
+      data: { response },
     });
   };
 };
