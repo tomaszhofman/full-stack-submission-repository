@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
-import axios from 'axios';
+import { create, getAll, update } from './services/notes';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -10,10 +10,23 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');
   const [search, setSearch] = useState('');
 
+  const handleUpdatePhoneNumber = (personObject) => {
+    const newPhoneNumber = { ...personObject, number: newNumber };
+
+    console.log(newPhoneNumber);
+
+    update(personObject.id, newPhoneNumber).then((response) => {
+      setPersons(
+        persons.map((person) =>
+          person.id === personObject.id ? response : person
+        )
+      );
+    });
+  };
+
   useEffect(() => {
-    axios
-      .get('http://localhost:3002/persons')
-      .then((response) => setPersons(response.data))
+    getAll()
+      .then((response) => setPersons(response))
       .catch((e) => console.log(e));
   }, []);
 
@@ -32,15 +45,24 @@ const App = () => {
       (person) => newName.toLowerCase() === person.name.toLowerCase()
     );
     if (ifPersonExist) {
-      alert(`${newName} is already added to phonebook`);
-    }
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        handleUpdatePhoneNumber(ifPersonExist);
+      }
+    } else {
+      const newPersonName = {
+        name: newName,
+        number: newNumber,
+      };
 
-    const newPersonName = {
-      name: newName,
-      number: newNumber,
-    };
-    setPersons([...persons, newPersonName]);
-    setNewName('');
+      create(newPersonName).then((response) => {
+        setPersons([...persons, response]);
+        setNewName('');
+      });
+    }
   };
 
   return (
@@ -66,7 +88,7 @@ const App = () => {
 
       <h2>Numbers</h2>
 
-      <Persons persons={persons} />
+      <Persons persons={persons} setPersons={setPersons} />
     </div>
   );
 };
