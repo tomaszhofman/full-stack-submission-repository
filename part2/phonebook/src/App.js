@@ -3,12 +3,14 @@ import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
 import { create, getAll, update } from './services/notes';
+import Notification from './components/Notification';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [search, setSearch] = useState('');
+  const [message, setMessage] = useState(null);
 
   const handleUpdatePhoneNumber = (personObject) => {
     const newPhoneNumber = { ...personObject, number: newNumber };
@@ -21,6 +23,10 @@ const App = () => {
           person.id === personObject.id ? response : person
         )
       );
+      setMessage(`${personObject.number} was changed to ${newNumber} `);
+      setTimeout(() => {
+        setMessage(null);
+      }, 5000);
     });
   };
 
@@ -61,12 +67,18 @@ const App = () => {
       create(newPersonName).then((response) => {
         setPersons([...persons, response]);
         setNewName('');
+        setMessage(`${response.name} was added `);
+
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
       });
     }
   };
 
   return (
     <div>
+      <Notification message={message} />
       <h2>Phonebook</h2>
 
       <Filter
@@ -88,7 +100,11 @@ const App = () => {
 
       <h2>Numbers</h2>
 
-      <Persons persons={persons} setPersons={setPersons} />
+      <Persons
+        persons={persons}
+        setPersons={setPersons}
+        setMessage={setMessage}
+      />
     </div>
   );
 };

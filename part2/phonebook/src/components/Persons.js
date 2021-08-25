@@ -1,15 +1,21 @@
 import React from 'react';
 import { deleteObject } from '../services/notes';
 import Person from './Person';
-const Persons = ({ persons, setPersons }) => {
-  const handleDeletePerson = (id) => {
+const Persons = ({ persons, setPersons, setMessage }) => {
+  const handleDeletePerson = (personObject) => {
     if (window.confirm('Do you really want to delete user?')) {
-      deleteObject(id)
+      deleteObject(personObject.id)
         .then(() => {
-          setPersons(persons.filter((person) => person.id !== id));
+          setPersons(persons.filter((person) => person.id !== personObject.id));
         })
         .catch((e) => {
-          alert(`the phone nubmer ${id} was already deleted from server `);
+          setMessage(
+            `Infomrations of ${personObject.name} has already been removed from the server`
+          );
+
+          setTimeout(() => {
+            setMessage(null);
+          }, 5000);
         });
     }
   };
@@ -21,7 +27,7 @@ const Persons = ({ persons, setPersons }) => {
           <div>
             <Person
               {...person}
-              handleDeletePerson={() => handleDeletePerson(person.id)}
+              handleDeletePerson={() => handleDeletePerson(person)}
             />
           </div>
         </div>
