@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require('./models/person');
 
 app.use(cors());
 app.use(express.json());
@@ -67,18 +69,21 @@ app.get('/info', (request, response) => {
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Person.find({}).then((person) => {
+    response.json(person);
+  });
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
+  const id = request.params.id;
 
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(id).then((person) => {
+    if (person) {
+      response.json(person);
+    } else {
+      response.status(404).end();
+    }
+  });
 });
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -92,7 +97,7 @@ app.post('/api/persons', (request, response) => {
 
   const ifPersonExist = persons.find((person) => person.name === body.name);
 
-  if (!body.number || !body.name) {
+  if (!body.phoneNumber || !body.name) {
     return response.status(400).json({
       error: 'number or name missing',
     });
@@ -102,14 +107,15 @@ app.post('/api/persons', (request, response) => {
     });
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
+    phoneNumber: body.phoneNumber,
     id: generateId(),
-  };
+  });
 
-  persons = persons.concat(person);
-  response.json(person);
+  person.save().then((person) => {
+    response.json(person);
+  });
 });
 
 const unknownPort = (request, response) => {
