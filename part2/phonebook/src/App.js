@@ -12,8 +12,12 @@ const App = () => {
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState(null);
 
+  console.log(persons);
+
   const handleUpdatePhoneNumber = (personObject) => {
     const newPhoneNumber = { ...personObject, number: newNumber };
+
+    console.log(personObject, 'test');
 
     console.log(newPhoneNumber);
 
@@ -63,6 +67,8 @@ const App = () => {
         name: newName,
         number: newNumber,
       };
+
+      console.log(newPersonName);
 
       create(newPersonName).then((response) => {
         setPersons([...persons, response]);

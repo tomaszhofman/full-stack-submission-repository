@@ -13,7 +13,7 @@ mongoose
 
 const personSchema = new mongoose.Schema({
   name: String,
-  phoneNumber: String,
+  number: String,
   id: Number,
 });
 
