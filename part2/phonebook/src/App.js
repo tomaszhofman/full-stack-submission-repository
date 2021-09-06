@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
-import { create, getAll, update } from './services/notes';
+import { create, getAll, update } from './services/persons';
 import Notification from './components/Notification';
 
 const App = () => {
@@ -70,15 +70,23 @@ const App = () => {
 
       console.log(newPersonName);
 
-      create(newPersonName).then((response) => {
-        setPersons([...persons, response]);
-        setNewName('');
-        setMessage(`${response.name} was added `);
+      create(newPersonName)
+        .then((response) => {
+          setPersons([...persons, response]);
+          setNewName('');
+          setMessage(`${response.name} was added `);
 
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
-      });
+          setTimeout(() => {
+            setMessage(null);
+          }, 5000);
+        })
+        .catch((error) => {
+          setMessage(error.response.data.error);
+
+          setTimeout(() => {
+            setMessage(null);
+          }, 5000);
+        });
     }
   };
 

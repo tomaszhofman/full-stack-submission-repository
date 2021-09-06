@@ -1,5 +1,5 @@
 import React from 'react';
-import { deleteObject } from '../services/notes';
+import { deleteObject } from '../services/persons';
 import Person from './Person';
 const Persons = ({ persons, setPersons, setMessage }) => {
   const handleDeletePerson = (personObject) => {
