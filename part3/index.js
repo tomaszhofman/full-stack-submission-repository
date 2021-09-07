@@ -24,12 +24,12 @@ app.use(
   })
 );
 
-app.get('/info', (request, response) => {
-  const date = new Date();
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people<p> ${date.toJSON()}`
-  );
-});
+// app.get('/info', (request, response) => {
+//   const date = new Date();
+//   response.send(
+//     `<p>Phonebook has info for ${persons.length} people<p> ${date.toJSON()}`
+//   );
+// });
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then((person) => {
@@ -55,7 +55,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id;
 
   Person.findByIdAndRemove(id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
