@@ -2,8 +2,6 @@ const blogRouter = require('express').Router();
 
 const Blog = require('../models/blog');
 
-console.log('dupaa');
-
 blogRouter.get('/', (request, response) => {
   Blog.find({}).then((blogs) => {
     response.json(blogs);
