@@ -3,7 +3,9 @@ const supertest = require('supertest');
 const app = require('../app');
 const Blog = require('../models/blog');
 const helper = require('../utils/testHelper');
-
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
+let token = null;
 beforeEach(async () => {
   await Blog.deleteMany({});
 
@@ -11,6 +13,23 @@ beforeEach(async () => {
     let blogObject = new Blog(blog);
     await blogObject.save();
   }
+
+  await User.deleteMany({});
+
+  const passwordHash = await bcrypt.hash('password', 10);
+  const user = new User({ username: 'jane', passwordHash });
+
+  await user.save();
+
+  // Login user to get token
+  await api
+    .post('/api/login')
+    .send({ username: 'jane', password: 'password' })
+    .then((res) => {
+      return (token = res.body.token);
+    });
+
+  return token;
 });
 
 const api = supertest(app);
@@ -54,6 +73,7 @@ test('POST request to the /api/blogs url successfully', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/);
@@ -76,6 +96,7 @@ test('verifies that if the likes property is missing from the request', async ()
 
   await api
     .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/);
@@ -86,10 +107,56 @@ test('verifies that if the likes property is missing from the request', async ()
 });
 
 describe('delete a blogs', () => {
+  let token = null;
+  beforeEach(async () => {
+    await User.deleteMany({});
+    await Blog.deleteMany({});
+
+    const passwordHash = await bcrypt.hash('sekret', 10);
+    const user = new User({ username: 'root', passwordHash });
+    await user.save();
+
+    await api
+      .post('/api/login')
+      .send({ username: 'root', password: 'sekret' })
+      .then((res) => {
+        return (token = res.body.token);
+      });
+
+    const newBlog = {
+      title: 'Another blog',
+      author: 'Jane Doe',
+      url: 'http://dummyurl.com',
+    };
+
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+
+    return token;
+  });
+
   test('verifies if specify blog is being deleted', async () => {
+    const blogsAtStart = await Blog.find({}).populate('user');
+    const blogAtStart = blogsAtStart[0];
+
+    await api
+      .delete(`/api/blogs/${blogAtStart.id}`)
+      .set('Authorization', `bearer ${token}`)
+      .expect(204);
+  });
+
+  test(' adding a blog fails with the proper status code 401 Unauthorized if a token is not provided', async () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogAtStart = blogsAtStart[0];
-    await api.delete(`/api/blogs/${blogAtStart.id}`).expect(204);
+    const response = await api
+      .delete(`/api/blogs/${blogAtStart.id}`)
+      .expect(400);
+
+    expect(response.error.text).toContain('"error":"invalid token"');
   });
 });
 
