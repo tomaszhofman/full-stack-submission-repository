@@ -3,6 +3,8 @@ import Blog from './components/Blog';
 import blogService from './services/blogs';
 import loginService from './services/login';
 import Notification from './components/Notification';
+import Toggble from './components/Toggble';
+import BlogForm from './components/BlogForm';
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
@@ -10,9 +12,6 @@ const App = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [author, setAuthor] = useState('');
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
@@ -63,15 +62,8 @@ const App = () => {
     }
   };
 
-  const handleAddBlog = async (e) => {
-    e.preventDefault();
-
-    const blogObject = {
-      title: title,
-      url: url,
-      author: author,
-    };
-
+  const handleAddBlog = async (blogObject) => {
+    console.log(blogObject, 'APPP');
     const createdBlog = await blogService.create(blogObject, user.token);
 
     setBlogs([...blogs, createdBlog]);
@@ -122,24 +114,20 @@ const App = () => {
       <button onClick={handleLogout}>logout</button>
       <br />
       <h2>Create new</h2>
-      <form onSubmit={handleAddBlog}>
-        <label htmlFor='url'>url</label>
-        <input value={url} onChange={({ target }) => setUrl(target.value)} />
-        <label htmlFor='author'>author</label>
-        <input
-          value={author}
-          onChange={({ target }) => setAuthor(target.value)}
-        />
-        <label htmlFor='title'>title</label>
-        <input
-          value={title}
-          onChange={({ target }) => setTitle(target.value)}
-        />
-        <button type='submit'>create</button>
-      </form>
-      {blogs.map((blog) => (
-        <Blog key={blog} blog={blog} />
-      ))}
+      <Toggble label='create new blog'>
+        <BlogForm handleAddBlog={handleAddBlog} />
+      </Toggble>
+      {blogs
+        .sort((a, b) => b.likes - a.likes)
+        .map((blog) => (
+          <Blog
+            key={blog}
+            blog={blog}
+            setBlogs={setBlogs}
+            blogs={blogs}
+            user={user}
+          />
+        ))}
     </div>
   );
 };
