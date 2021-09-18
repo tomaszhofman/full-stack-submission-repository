@@ -3,7 +3,7 @@ import Blog from './components/Blog';
 import blogService from './services/blogs';
 import loginService from './services/login';
 import Notification from './components/Notification';
-import Toggble from './components/Toggble';
+import Togglable from './components/Togglable';
 import BlogForm from './components/BlogForm';
 
 const App = () => {
@@ -114,9 +114,9 @@ const App = () => {
       <button onClick={handleLogout}>logout</button>
       <br />
       <h2>Create new</h2>
-      <Toggble label='create new blog'>
+      <Togglable label='create new blog'>
         <BlogForm handleAddBlog={handleAddBlog} />
-      </Toggble>
+      </Togglable>
       {blogs
         .sort((a, b) => b.likes - a.likes)
         .map((blog) => (
