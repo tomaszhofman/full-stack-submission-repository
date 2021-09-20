@@ -12,9 +12,8 @@ const parseJwt = (token) => {
 const Blog = ({ blog, setBlogs, blogs, user }) => {
   const [details, setDetails] = useState(false);
 
-  const { id } = parseJwt(user.token);
+  const { id = '' } = parseJwt(user.token) || {};
 
-  console.log(id, blog);
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
