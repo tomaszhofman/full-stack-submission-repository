@@ -40,14 +40,17 @@ const Blog = ({ blog, setBlogs, blogs, user }) => {
     }
   };
   return (
-    <div style={blogStyle}>
+    <div id='blog' style={blogStyle}>
       {details ? (
         <div>
           {blog.title}
           <button onClick={toggleDetails}>hide</button> <br />
           {blog.url} <br />
           {blog.likes}
-          <button onClick={like}>like</button> <br />
+          <button id='like' onClick={like}>
+            like
+          </button>
+          <br />
           added by {blog.author}
           {id === blog.user.id ? (
             <button onClick={remove}>remove</button>

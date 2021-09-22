@@ -6,6 +6,8 @@ const userRouter = require('./controllers/user');
 const blogRouter = require('./controllers/blog');
 const loginRouter = require('./controllers/login');
 
+const testingRouter = require('./controllers/testing');
+
 const middleware = require('./utils/middleware.js');
 const logger = require('./utils/logger');
 const mongoose = require('mongoose');
@@ -28,7 +30,7 @@ app.use(express.json());
 
 app.use(middleware.requestLogger);
 // app.use(express.static('build'))
-
+app.use('/api/testing', testingRouter);
 app.use('/api/users', userRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/blogs', blogRouter);
