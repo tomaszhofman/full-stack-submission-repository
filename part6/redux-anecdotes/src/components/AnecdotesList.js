@@ -3,9 +3,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { incrementLike } from '../reducers/anecdoteReducer';
 
 const AnecdotesList = () => {
-  const anecdotes = useSelector((state) =>
-    state.sort((a, b) => b.votes - a.votes)
-  );
+  const anecdotes = useSelector(({ anecdotes, filter }) => {
+    if (filter === '') {
+      return anecdotes.sort((a, b) => b.votes - a.votes);
+    } else
+      return anecdotes.filter((i) =>
+        i.content.toLowerCase().includes(filter.toLowerCase())
+      );
+  });
+
   const dispatch = useDispatch();
 
   const vote = (id) => {
