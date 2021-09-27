@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { incrementLike } from '../reducers/anecdoteReducer';
 
 const AnecdotesList = () => {
+  const dispatch = useDispatch();
   const anecdotes = useSelector(({ anecdotes, filter }) => {
     if (filter === '') {
       return anecdotes.sort((a, b) => b.votes - a.votes);
@@ -11,8 +12,6 @@ const AnecdotesList = () => {
         i.content.toLowerCase().includes(filter.toLowerCase())
       );
   });
-
-  const dispatch = useDispatch();
 
   const vote = (id) => {
     dispatch(incrementLike(id));
