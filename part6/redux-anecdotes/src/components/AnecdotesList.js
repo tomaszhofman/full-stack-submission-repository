@@ -1,6 +1,7 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { incrementLike } from '../reducers/anecdoteReducer';
+import { displayNotification } from '../reducers/notificationReducer';
 
 const AnecdotesList = () => {
   const dispatch = useDispatch();
@@ -13,8 +14,9 @@ const AnecdotesList = () => {
       );
   });
 
-  const vote = (id) => {
+  const vote = (content, id) => {
     dispatch(incrementLike(id));
+    dispatch(displayNotification(`you voted ${content} `, 3));
   };
   return (
     <div>
@@ -23,7 +25,9 @@ const AnecdotesList = () => {
           <div>{anecdote.content}</div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => vote(anecdote.id)}>vote</button>
+            <button onClick={() => vote(anecdote.content, anecdote.id)}>
+              vote
+            </button>
           </div>
         </div>
       ))}

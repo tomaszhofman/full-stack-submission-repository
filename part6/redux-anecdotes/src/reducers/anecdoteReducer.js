@@ -1,3 +1,5 @@
+import anecdotesService from '../services/anecdotes';
+
 const getId = () => (100000 * Math.random()).toFixed(0);
 
 export const asObject = (anecdote) => {
@@ -19,37 +21,50 @@ const reducer = (state = initialState, action) => {
       return state.concat(action.payload);
 
     case 'INCREMENT_LIKE':
-      const stateCopy = [...state];
-      const findNote = stateCopy.find((i) => i.id === action.payload);
-      const newAnecdote = {
-        ...findNote,
-        votes: findNote.votes + 1,
-      };
-      return state.map((i) => (i.id === action.payload ? newAnecdote : i));
+      // console.log(action);
+      // const stateCopy = [...state];
+      // const findNote = stateCopy.find((i) => i.id === action.payload);
+      // const newAnecdote = {
+      //   ...findNote,
+      //   votes: findNote.votes + 1,
+      // };
+      return state.map((i) =>
+        i.id === action.payload.id ? action.payload.response : i
+      );
 
     default:
       return state;
   }
 };
 
-export const createAnecdote = (anecdote) => {
-  return {
-    type: 'CREATE_ANECDOTE',
-    payload: anecdote,
+export const createAnecdote = (content) => {
+  return async (dispatch) => {
+    const newAnecdote = await anecdotesService.createNew(content);
+    dispatch({
+      type: 'CREATE_ANECDOTE',
+      payload: newAnecdote,
+    });
   };
 };
 
 export const incrementLike = (id) => {
-  return {
-    type: 'INCREMENT_LIKE',
-    payload: id,
+  return async (dispatch) => {
+    const response = await anecdotesService.incrementLikes(id);
+    dispatch({
+      type: 'INCREMENT_LIKE',
+      payload: { response, id },
+    });
   };
 };
 
-export const initializeAnecdotes = (anecdotes) => {
-  return {
-    type: 'CREATE_ANECDOTES',
-    data: anecdotes,
+export const initializeAnecdotes = () => {
+  return async (dispatch) => {
+    const anecdotes = await anecdotesService.getAll();
+
+    dispatch({
+      type: 'CREATE_ANECDOTES',
+      data: anecdotes,
+    });
   };
 };
 
