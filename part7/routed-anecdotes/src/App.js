@@ -8,6 +8,7 @@ import {
   useRouteMatch,
   useHistory,
 } from 'react-router-dom';
+import { useField } from './hooks/useField';
 
 const Menu = () => {
   const padding = {
@@ -93,20 +94,23 @@ const Anecdote = ({ anecdote }) => {
 };
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('');
-  const [author, setAuthor] = useState('');
-  const [info, setInfo] = useState('');
   const history = useHistory();
   const match = useRouteMatch();
+  const content = useField('text');
+  const author = useField('author');
+  const info = useField('info');
 
   console.log(match);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    console.log(content);
+
     props.addNew({
-      content,
-      author,
-      info,
+      content: content.value,
+      author: author.value,
+      info: info.value,
       votes: 0,
     });
 
@@ -124,29 +128,34 @@ const CreateNew = (props) => {
         <div>
           content
           <input
-            name='content'
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            type={content.type}
+            value={content.value}
+            onChange={content.onChange}
           />
         </div>
         <div>
           author
           <input
-            name='author'
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
+            name={author.type}
+            value={author.value}
+            onChange={author.onChange}
           />
         </div>
         <div>
           url for more info
-          <input
-            name='info'
-            value={info}
-            onChange={(e) => setInfo(e.target.value)}
-          />
+          <input name={info.type} value={info.value} onChange={info.onChange} />
         </div>
         <button>create</button>
       </form>
+      <button
+        onClick={() => {
+          content.reset();
+          author.reset();
+          info.reset();
+        }}
+      >
+        reset
+      </button>
     </div>
   );
 };
